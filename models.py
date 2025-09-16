@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 class CreateRecurringPayment(BaseModel):
     price_id: str | None = ""
-    payment_method_types: list[str]
+    payment_method_types: list[str] = ["bacs_debit"]
     success_url: str | None = ""
     customer_email: str | None = ""
     currency: str | None = ""
@@ -14,7 +14,7 @@ class CreateRecurringPayment(BaseModel):
 class RecurringPayment(BaseModel):
     id: str | None = ""
     price_id: str | None = ""
-    payment_method_types: list[str]
+    payment_method_types: list[str] = ["bacs_debit"]
     success_url: str | None = ""
     metadata: str | None = ""
     customer_email: str | None = ""

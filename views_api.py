@@ -17,7 +17,7 @@ from .crud import (
 from lnbits.fiat import get_fiat_provider
 from .helpers import check_live, is_entitled_status
 from .models import RecurringPayment, CreateRecurringPayment
-
+from loguru import logger
 recurring_api_router = APIRouter()
 
 @recurring_api_router.get(
@@ -47,31 +47,53 @@ async def api_recurrings(
     wallet_ids = user.wallet_ids if user else []
     recurrings = await get_recurrings(wallet_ids)
     return recurrings
-
 @recurring_api_router.post("/api/v1/recurring", status_code=HTTPStatus.CREATED)
 async def api_recurring_create(
     data: CreateRecurringPayment,
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ) -> RecurringPayment:
     provider_wallet = await get_fiat_provider("stripe")
+
+    # Build nested "recurring" options for the Stripe provider
+    recurring_opts: dict[str, Any] = {
+        "price_id": data.price_id,                 # live recurring price id
+        "success_url": data.success_url,           # required by Checkout
+        "cancel_url": data.success_url,            # use same as success if you don't have one
+        "metadata": {
+            "user_id": str(data.customer_id),
+            "plan": (data.plan or "default"),
+            "wallet_id": wallet.wallet.id,
+        },
+        # tip: you can add "trial_days": 7 here if you want a trial
+    }
+    if data.customer_email:
+        recurring_opts["customer_email"] = data.customer_email
+
+    extra = {"recurring": recurring_opts}
+
     resp = await provider_wallet.create_invoice(
-        amount=0,
+        amount=0,                    # ignored for subscriptions
         payment_hash="recurring",
-        currency=data.currency,
+        currency=data.currency,      # ignored; Stripe uses the price's currency
         memo=data.memo,
-        extra=data.dict(exclude={"memo"}),
+        extra=extra,
     )
-    if not resp or resp.error:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=resp.error)
-    recurring_data = CreateRecurringPayment(
-        id=resp.id,
+    logger.debug(resp)
+    if not resp or not resp.ok:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=resp.error_message or "Could not create invoice.",
+        )
+
+    # Store whatever you like locally (keeping your original fields)
+    recurring_data = RecurringPayment(
+        id=resp.checking_id,
         price_id=data.price_id,
-        payment_method_types=",".join(data.payment_method_types),
+        payment_method_types=data.payment_method_types,
         success_url=data.success_url,
         metadata=str({"user_id": data.customer_id, "plan": data.plan}),
         customer_email=data.customer_email,
         check_live=True,
         wallet_id=wallet.wallet.id,
     )
-    recurring = await create_recurring(recurring_data)
-    return recurring
+    return await create_recurring(recurring_data)
