@@ -4,7 +4,7 @@ async def m001_initial(db):
     """
     await db.execute(
         """
-        CREATE TABLE reccuring.maintable (
+        CREATE TABLE recurring.maintable (
             id TEXT PRIMARY KEY,
             price_id TEXT,
             payment_method_types TEXT,

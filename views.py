@@ -4,13 +4,13 @@ from lnbits.core.models import User
 from lnbits.decorators import check_user_exists
 from lnbits.helpers import template_renderer
 
-reccuring_generic_router = APIRouter()
+recurring_generic_router = APIRouter()
 
-def reccuring_renderer():
-    return template_renderer(["reccuring/templates"])
+def recurring_renderer():
+    return template_renderer(["recurring/templates"])
 
-@reccuring_generic_router.get("/", response_class=HTMLResponse)
+@recurring_generic_router.get("/", response_class=HTMLResponse)
 async def index(req: Request, user: User = Depends(check_user_exists)):
-    return reccuring_renderer().TemplateResponse(
-        "reccuring/index.html", {"request": req, "user": user.json()}
+    return recurring_renderer().TemplateResponse(
+        "recurring/index.html", {"request": req, "user": user.json()}
     )

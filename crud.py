@@ -4,33 +4,33 @@
 from lnbits.db import Database
 from lnbits.helpers import urlsafe_short_hash
 
-from .models import CreateReccuringData, Reccuring
+from .models import CreateRecurringPayment, RecurringPayment
 
-db = Database("ext_reccuring")
+db = Database("ext_recurring")
 
 
-async def create_reccuring(data: CreateReccuringData) -> Reccuring:
+async def create_recurring(data: CreateRecurringPayment) -> RecurringPayment:
     data.id = urlsafe_short_hash()
-    await db.insert("reccuring.maintable", data)
-    return Reccuring(**data.dict())
+    await db.insert("recurring.maintable", data)
+    return RecurringPayment(**data.dict())
 
-async def get_reccuring(reccuring_id: str) -> Reccuring | None:
+async def get_recurring(recurring_id: str) -> RecurringPayment | None:
     return await db.fetchone(
-        "SELECT * FROM reccuring.maintable WHERE id = :id",
-        {"id": reccuring_id},
-        Reccuring,
+        "SELECT * FROM recurring.maintable WHERE id = :id",
+        {"id": recurring_id},
+        RecurringPayment,
     )
 
-async def get_reccurings(wallet_ids: str | list[str]) -> list[Reccuring]:
+async def get_recurrings(wallet_ids: str | list[str]) -> list[RecurringPayment]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
     q = ",".join([f"'{w}'" for w in wallet_ids])
     return await db.fetchall(
-        f"SELECT * FROM reccuring.maintable WHERE wallet IN ({q}) ORDER BY id",
-        model=Reccuring,
+        f"SELECT * FROM recurring.maintable WHERE wallet IN ({q}) ORDER BY id",
+        model=RecurringPayment,
     )
 
-async def delete_reccuring(reccuring_id: str) -> None:
+async def delete_recurring(recurring_id: str) -> None:
     await db.execute(
-        "DELETE FROM reccuring.maintable WHERE id = :id", {"id": reccuring_id}
+        "DELETE FROM recurring.maintable WHERE id = :id", {"id": recurring_id}
     )

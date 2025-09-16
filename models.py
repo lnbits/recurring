@@ -7,6 +7,8 @@ class CreateRecurringPayment(BaseModel):
     customer_email: str | None = ""
     currency: str | None = ""
     customer_id: bool | None = True
+    memo: str | None = ""
+    email: str | None = ""
     plan: str | None = ""
 
 class RecurringPayment(BaseModel):

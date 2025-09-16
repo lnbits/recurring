@@ -8,33 +8,34 @@ from lnbits.core.models import WalletTypeInfo
 from lnbits.core.services import create_invoice
 from lnbits.decorators import require_admin_key, require_invoice_key
 from starlette.exceptions import HTTPException
-import settings
+from lnbits.settings import settings
 from .crud import (
-    create_reccuring,
-    get_reccuring,
-    get_reccurings,
+    create_recurring,
+    get_recurring,
+    get_recurrings,
 )
+from lnbits.fiat import get_fiat_provider
 from .helpers import check_live, is_entitled_status
 from .models import RecurringPayment, CreateRecurringPayment
 
-reccuring_api_router = APIRouter()
+recurring_api_router = APIRouter()
 
-@reccuring_api_router.get(
-    "/api/v1/reccuring/{reccuring_id}",
+@recurring_api_router.get(
+    "/api/v1/recurring/{recurring_id}",
     dependencies=[Depends(require_admin_key)],
 )
-async def api_reccuring(reccuring_id: str) -> RecurringPayment:
-    reccuring = await get_reccuring(reccuring_id)
-    if not reccuring:
+async def api_recurring(recurring_id: str) -> RecurringPayment:
+    recurring = await get_recurring(recurring_id)
+    if not recurring:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Reccuring payment does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="recurring payment does not exist."
         )
-    status = await check_live(reccuring_id, settings.stripe_api_key)
-    reccuring.check_live = is_entitled_status(status)
-    return reccuring
+    status = await check_live(recurring_id, settings.stripe_api_secret_key)
+    recurring.check_live = is_entitled_status(status)
+    return recurring
 
-@reccuring_api_router.get("/api/v1/reccuring")
-async def api_reccurings(
+@recurring_api_router.get("/api/v1/recurring")
+async def api_recurrings(
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ) -> list[RecurringPayment]:
     wallet_ids = [wallet.wallet.id]
@@ -44,29 +45,21 @@ async def api_reccurings(
             status_code=HTTPStatus.NOT_FOUND, detail="Not your wallet."
         )
     wallet_ids = user.wallet_ids if user else []
-    reccurings = await get_reccurings(wallet_ids)
-    return reccurings
+    recurrings = await get_recurrings(wallet_ids)
+    return recurrings
 
-@reccuring_api_router.post("/api/v1/reccuring", status_code=HTTPStatus.CREATED)
-async def api_reccuring_create(
+@recurring_api_router.post("/api/v1/recurring", status_code=HTTPStatus.CREATED)
+async def api_recurring_create(
     data: CreateRecurringPayment,
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ) -> RecurringPayment:
-    data.wallet_id = wallet.wallet.id
-    extra = {
-        "recurring": {
-            "price_id": data.price_id,
-            "payment_method_types": data.payment_method_types,
-            "user_email": data.customer_email,
-            "success_url": data.success_url,
-            "metadata": {"user_id": data.customer_id, "plan": data.plan},
-            "customer_email": data.customer_email,
-        }
-    }
+    provider_wallet = await get_fiat_provider("stripe")
     resp = await provider_wallet.create_invoice(
+        amount=0,
+        payment_hash="recurring",
         currency=data.currency,
         memo=data.memo,
-        extra=extra,
+        extra=data.dict(exclude={"memo"}),
     )
     if not resp or resp.error:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=resp.error)
@@ -80,5 +73,5 @@ async def api_reccuring_create(
         check_live=True,
         wallet_id=wallet.wallet.id,
     )
-    reccuring = await create_reccuring(recurring_data)
-    return reccuring
+    recurring = await create_recurring(recurring_data)
+    return recurring

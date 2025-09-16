@@ -4,7 +4,7 @@ from lnbits.core.models import Payment
 from lnbits.core.services import websocket_updater
 from lnbits.tasks import register_invoice_listener
 
-from .crud import get_reccuring, update_reccuring
+from .crud import get_recurring, update_recurring
 from .models import CreateReccuringData
 
 #######################################
@@ -16,7 +16,7 @@ from .models import CreateReccuringData
 
 async def wait_for_paid_invoices():
     invoice_queue = asyncio.Queue()
-    register_invoice_listener(invoice_queue, "ext_reccuring")
+    register_invoice_listener(invoice_queue, "ext_recurring")
     while True:
         payment = await invoice_queue.get()
         await on_invoice_paid(payment)
@@ -29,28 +29,28 @@ async def on_invoice_paid(payment: Payment) -> None:
     if payment.extra.get("tag") != "Reccuring":
         return
 
-    reccuring_id = payment.extra.get("reccuringId")
-    assert reccuring_id, "reccuringId not set in invoice"
-    reccuring = await get_reccuring(reccuring_id)
-    assert reccuring, "Reccuring does not exist"
+    recurring_id = payment.extra.get("recurringId")
+    assert recurring_id, "recurringId not set in invoice"
+    recurring = await get_recurring(recurring_id)
+    assert recurring, "Reccuring does not exist"
 
     # update something in the db
     if payment.extra.get("lnurlwithdraw"):
-        total = reccuring.total - payment.amount
+        total = recurring.total - payment.amount
     else:
-        total = reccuring.total + payment.amount
+        total = recurring.total + payment.amount
 
-    reccuring.total = total
-    await update_reccuring(CreateReccuringData(**reccuring.dict()))
+    recurring.total = total
+    await update_recurring(CreateReccuringData(**recurring.dict()))
 
     # here we could send some data to a websocket on
-    # wss://<your-lnbits>/api/v1/ws/<reccuring_id> and then listen to it on
+    # wss://<your-lnbits>/api/v1/ws/<recurring_id> and then listen to it on
 
     some_payment_data = {
-        "name": reccuring.name,
+        "name": recurring.name,
         "amount": payment.amount,
         "fee": payment.fee,
         "checking_id": payment.checking_id,
     }
 
-    await websocket_updater(reccuring_id, str(some_payment_data))
+    await websocket_updater(recurring_id, str(some_payment_data))

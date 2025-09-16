@@ -4,18 +4,10 @@
 
 {% extends "base.html" %} {% from "macros.jinja" import window_vars with context
 %} {% block scripts %} {{ window_vars(user) }}
-<script src="{{ static_url_for('reccuring/static', path='js/index.js') }}"></script>
+<script src="{{ static_url_for('recurring/static', path='js/index.js') }}"></script>
 {% endblock %} {% block page %}
 <div class="row q-col-gutter-md" id="makeItRain">
   <div class="col-12 col-md-8 col-lg-7 q-gutter-y-md">
-    <q-card>
-      <q-card-section>
-        <q-btn unelevated color="primary" @click="formDialog.show = true"
-          >New Reccuring</q-btn
-        >
-      </q-card-section>
-    </q-card>
-
     <q-card>
       <q-card-section>
         <div class="row items-center no-wrap q-mb-md">
@@ -29,18 +21,18 @@
         <q-table
           dense
           flat
-          :rows="reccuring"
+          :rows="recurring"
           row-key="id"
-          :columns="reccuringTable.columns"
-          v-model:pagination="reccuringTable.pagination"
+          :columns="recurringTable.columns"
+          v-model:pagination="recurringTable.pagination"
         >
-          <reccuring v-slot:header="props">
+          <recurring v-slot:header="props">
             <q-tr :props="props">
               <q-th v-for="col in props.cols" :key="col.name" :props="props">
                 ${ col.label }
               </q-th>
             </q-tr>
-          </reccuring>
+          </recurring>
 
           <template v-slot:body="props">
             <q-tr :props="props">
@@ -69,35 +61,9 @@
                   type="a"
                   :href="props.row.id"
                   target="_blank"
-                  ><q-tooltip>Open public page</q-tooltip></q-btn
+                  ><q-tooltip>Check live</q-tooltip></q-btn
                 ></q-td
               >
-
-              <q-td>
-                <q-btn
-                  flat
-                  dense
-                  size="xs"
-                  @click="updateReccuringForm(props.row.id)"
-                  icon="edit"
-                  color="light-blue"
-                >
-                  <q-tooltip> Edit copilot </q-tooltip>
-                </q-btn>
-              </q-td>
-
-              <q-td>
-                <q-btn
-                  flat
-                  dense
-                  size="xs"
-                  @click="deleteReccuring(props.row.id)"
-                  icon="cancel"
-                  color="pink"
-                >
-                  <q-tooltip> Delete copilot </q-tooltip>
-                </q-btn>
-              </q-td>
             </q-tr>
           </template>
         </q-table>
@@ -119,125 +85,13 @@
       <q-card-section class="q-pa-none">
         <q-separator></q-separator>
         <q-list>
-          {% include "reccuring/_api_docs.html" %}
+          {% include "recurring/_api_docs.html" %}
           <q-separator></q-separator>
-          {% include "reccuring/_reccuring.html" %}
+          {% include "recurring/_recurring.html" %}
         </q-list>
       </q-card-section>
     </q-card>
   </div>
 
-  <!--/////////////////////////////////////////////////-->
-  <!--//////////////FORM DIALOG////////////////////////-->
-  <!--/////////////////////////////////////////////////-->
-
-  <q-dialog v-model="formDialog.show" position="top" @hide="closeFormDialog">
-    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
-      <q-form @submit="sendReccuringData" class="q-gutter-md">
-        <q-input
-          filled
-          dense
-          v-model.trim="formDialog.data.name"
-          label="Name"
-          placeholder="Name for your record"
-        ></q-input>
-        <q-select
-          filled
-          dense
-          emit-value
-          v-model="formDialog.data.wallet"
-          :options="g.user.walletOptions"
-          label="Wallet *"
-        ></q-select>
-        <q-input
-          filled
-          dense
-          type="number"
-          v-model.trim="formDialog.data.lnurlwithdrawamount"
-          label="LNURL-withdraw amount"
-        ></q-input>
-        <q-input
-          filled
-          dense
-          type="number"
-          v-model.trim="formDialog.data.lnurlpayamount"
-          label="LNURL-pay amount"
-        ></q-input>
-        <div class="row q-mt-lg">
-          <q-btn
-            v-if="formDialog.data.id"
-            unelevated
-            color="primary"
-            type="submit"
-            >Update Reccuring</q-btn
-          >
-          <q-btn
-            v-else
-            unelevated
-            color="primary"
-            :disable="formDialog.data.name == null || formDialog.data.wallet == null || formDialog.data.lnurlwithdrawamount == null || formDialog.data.lnurlpayamount == null"
-            type="submit"
-            >Create Reccuring</q-btn
-          >
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >Cancel</q-btn
-          >
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
-
-  <!--/////////////////////////////////////////////////-->
-  <!--//////////////QR Code DIALOG/////////////////////-->
-  <!--/////////////////////////////////////////////////-->
-
-  <q-dialog v-model="urlDialog.show" position="top">
-    <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
-
-        <lnbits-qrcode
-          v-if="qrValue && qrValue.startsWith('lnbc')"
-          :value="qrValue"
-        ></lnbits-qrcode>
-        <lnbits-qrcode-lnurl v-else :url="qrValue"></lnbits-qrcode-lnurl>
-
-      <q-separator></q-separator>
-
-      <div class="row justify-start q-mt-lg">
-        <div class="col col-md-auto">
-          <q-btn
-            outline
-            style="color: primmary"
-            @click="qrValue = urlDialog.data.lnurlpay"
-            >lnurlpay</q-btn
-          >
-        </div>
-        <div class="col col-md-auto">
-          <q-btn
-            outline
-            style="color: primmary"
-            @click="qrValue = urlDialog.data.lnurlwithdraw"
-            >lnurlwithdraw</q-btn
-          >
-        </div>
-        <div class="col q-pl-md">
-          <q-input filled bottom-slots dense v-model="invoiceAmount">
-            <template v-slot:append>
-              <q-btn
-                round
-                @click="createInvoice(urlDialog.data.id)"
-                color="primary"
-                flat
-                icon="add_circle"
-              />
-            </template>
-            <template v-slot:hint> Create an invoice </template>
-          </q-input>
-        </div>
-      </div>
-      <div class="row q-mt-lg">
-        <q-btn v-close-popup flat color="grey" class="q-ml-auto">Close</q-btn>
-      </div>
-    </q-card>
-  </q-dialog>
 </div>
 {% endblock %}

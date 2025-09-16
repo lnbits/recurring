@@ -1,23 +1,23 @@
 from fastapi import APIRouter
 
 from .crud import db
-from .views import reccuring_generic_router
-from .views_api import reccuring_api_router
+from .views import recurring_generic_router
+from .views_api import recurring_api_router
 
-reccuring_ext: APIRouter = APIRouter(prefix="/reccuring", tags=["Reccuring"])
-reccuring_ext.include_router(reccuring_generic_router)
-reccuring_ext.include_router(reccuring_api_router)
+recurring_ext: APIRouter = APIRouter(prefix="/recurring", tags=["Reccuring"])
+recurring_ext.include_router(recurring_generic_router)
+recurring_ext.include_router(recurring_api_router)
 
-reccuring_static_files = [
+recurring_static_files = [
     {
-        "path": "/reccuring/static",
-        "name": "reccuring_static",
+        "path": "/recurring/static",
+        "name": "recurring_static",
     }
 ]
 
 
 __all__ = [
     "db",
-    "reccuring_ext",
-    "reccuring_static_files",
+    "recurring_ext",
+    "recurring_static_files",
 ]
