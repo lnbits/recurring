@@ -20,11 +20,11 @@ from .crud import (
 from lnbits.fiat import get_fiat_provider
 from .helpers import check_live, is_entitled_status
 from .models import RecurringPayment, CreateRecurringPayment, RecurringPaymentReturn
-from loguru import logger
+
 recurring_api_router = APIRouter()
 
 @recurring_api_router.get(
-    "/api/v1/recurring/{recurring_id}"
+    "/api/v1/{recurring_id}"
 )
 async def api_recurring(
     recurring_id: str,
@@ -44,7 +44,7 @@ async def api_recurring(
     recurring.check_live = is_entitled_status(status)
     return recurring
 
-@recurring_api_router.get("/api/v1/recurring")
+@recurring_api_router.get("/api/v1")
 async def api_recurrings(
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ) -> list[RecurringPayment]:
@@ -81,7 +81,7 @@ async def api_recurrings(
     return updated_recurrings
 
 
-@recurring_api_router.post("/api/v1/recurring", status_code=HTTPStatus.CREATED)
+@recurring_api_router.post("/api/v1", status_code=HTTPStatus.CREATED)
 async def api_recurring_create(
     data: CreateRecurringPayment,
     wallet: WalletTypeInfo = Depends(require_admin_key),
@@ -133,7 +133,6 @@ async def api_recurring_create(
         **recurring_data.dict(),
         payment_request=resp.payment_request,
     )
-    logger.debug(returned_data)
     created = await create_recurring(recurring_data)
     if not created:
         raise HTTPException(

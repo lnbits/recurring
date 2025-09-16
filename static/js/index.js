@@ -7,6 +7,7 @@ window.app = Vue.createApp({
       recurring: [],
       recurringTable: {
         columns: [
+          {name: 'live', align: 'left', label: 'live', field: 'check_live'},
           {name: 'id', align: 'left', label: 'id', field: 'id'},
           {name: 'price_id', align: 'left', label: 'price_id', field: 'price_id'},
           {

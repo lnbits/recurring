@@ -37,33 +37,12 @@
           <template v-slot:body="props">
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                <div v-if="col.field == 'total'">${ col.value / 1000} sats</div>
+                <div v-if="col.field == 'check_live'">
+                  <q-icon size="1rem" name="check_circle" color="green" v-if="col.value == true"></q-icon>
+                  <q-icon size="1rem" name="cancel" color="red" v-if="col.value == false"></q-icon>
+                </div>
                 <div v-else>${ col.value }</div>
               </q-td>
-              <q-td auto-width>
-                <q-btn
-                  unelevated
-                  dense
-                  size="sm"
-                  icon="qr_code"
-                  :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  class="q-mr-sm"
-                  @click="openUrlDialog(props.row.id)"
-                ></q-btn
-              ></q-td>
-              <q-td auto-width>
-                <q-btn
-                  unelevated
-                  dense
-                  size="sm"
-                  icon="launch"
-                  :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  type="a"
-                  :href="props.row.id"
-                  target="_blank"
-                  ><q-tooltip>Check live</q-tooltip></q-btn
-                ></q-td
-              >
             </q-tr>
           </template>
         </q-table>
