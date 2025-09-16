@@ -13,7 +13,7 @@ async def m001_initial(db):
             customer_email TEXT,
             check_live BOOLEAN DEFAULT TRUE,
             wallet_id TEXT,
-            last_checked INTEGER NOT NULL DEFAULT {db.timestamp_now}
+            last_checked BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM {db.timestamp_now}))::BIGINT
         );
     """
     )

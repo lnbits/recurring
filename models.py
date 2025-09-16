@@ -20,7 +20,7 @@ class RecurringPayment(BaseModel):
     customer_email: str | None = ""
     check_live: bool | None = True
     wallet_id: str | None = ""
-    last_checked: int | None = ""
+    last_checked: int | None = 0
 
 class RecurringPaymentReturn(BaseModel):
     id: str | None = ""
@@ -31,5 +31,4 @@ class RecurringPaymentReturn(BaseModel):
     customer_email: str | None = ""
     check_live: bool | None = True
     wallet_id: str | None = ""
-    last_checked: int | None = ""
     payment_request: str | None = ""
