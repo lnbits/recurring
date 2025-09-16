@@ -10,8 +10,11 @@ db = Database("ext_recurring")
 
 
 async def create_recurring(data: CreateRecurringPayment) -> RecurringPayment:
-    data.id = urlsafe_short_hash()
     await db.insert("recurring.maintable", data)
+    return RecurringPayment(**data.dict())
+
+async def update_recurring(data: RecurringPayment) -> RecurringPayment:
+    await db.update("recurring.maintable", data)
     return RecurringPayment(**data.dict())
 
 async def get_recurring(recurring_id: str) -> RecurringPayment | None:
@@ -26,7 +29,7 @@ async def get_recurrings(wallet_ids: str | list[str]) -> list[RecurringPayment]:
         wallet_ids = [wallet_ids]
     q = ",".join([f"'{w}'" for w in wallet_ids])
     return await db.fetchall(
-        f"SELECT * FROM recurring.maintable WHERE wallet IN ({q}) ORDER BY id",
+        f"SELECT * FROM recurring.maintable WHERE wallet_id IN ({q}) ORDER BY id",
         model=RecurringPayment,
     )
 

@@ -3,7 +3,7 @@ async def m001_initial(db):
     Initial templates table.
     """
     await db.execute(
-        """
+        f"""
         CREATE TABLE recurring.maintable (
             id TEXT PRIMARY KEY,
             price_id TEXT,
@@ -12,7 +12,8 @@ async def m001_initial(db):
             metadata TEXT,
             customer_email TEXT,
             check_live BOOLEAN DEFAULT TRUE,
-            wallet_id TEXT
+            wallet_id TEXT,
+            last_checked INTEGER NOT NULL DEFAULT {db.timestamp_now}
         );
     """
     )
