@@ -1,9 +1,9 @@
 {
   "repos": [
     {
-      "id": "reccuring",
+      "id": "recurring",
       "organisation": "lnbits",
-      "repository": "reccuring"
+      "repository": "recurring"
     }
   ]
 }
