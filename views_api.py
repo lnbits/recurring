@@ -1,34 +1,32 @@
 # Description: This file contains the extensions API endpoints.
 
+from datetime import datetime, timezone
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from lnbits.core.crud import get_user, get_wallet
 from lnbits.core.models import WalletTypeInfo
-from lnbits.core.services import create_invoice
-from lnbits.decorators import require_admin_key, require_invoice_key
-from starlette.exceptions import HTTPException
+from lnbits.decorators import require_admin_key
+from lnbits.fiat import get_fiat_provider
 from lnbits.settings import settings
-from datetime import datetime, timezone
+from starlette.exceptions import HTTPException
+
 from .crud import (
     create_recurring,
+    delete_recurring,
     get_recurring,
     get_recurrings,
     update_recurring,
-    delete_recurring
 )
-from lnbits.fiat import get_fiat_provider
 from .helpers import check_live, is_entitled_status
-from .models import RecurringPayment, CreateRecurringPayment, RecurringPaymentReturn
+from .models import CreateRecurringPayment, RecurringPayment, RecurringPaymentReturn
 
 recurring_api_router = APIRouter()
 
-@recurring_api_router.get(
-    "/api/v1/{recurring_id}"
-)
+
+@recurring_api_router.get("/api/v1/{recurring_id}")
 async def api_recurring(
-    recurring_id: str,
-    wallet: WalletTypeInfo = Depends(require_admin_key)
+    recurring_id: str, wallet: WalletTypeInfo = Depends(require_admin_key)
 ) -> RecurringPayment:
     recurring = await get_recurring(recurring_id)
     if not recurring:
@@ -37,12 +35,11 @@ async def api_recurring(
         )
     wallet_info = await get_wallet(recurring.wallet_id)
     if wallet_info.user != wallet.wallet.user:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Not your wallet."
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Not your wallet.")
     status = await check_live(recurring_id, settings.stripe_api_secret_key)
     recurring.check_live = is_entitled_status(status)
     return recurring
+
 
 @recurring_api_router.get("/api/v1")
 async def api_recurrings(
@@ -51,20 +48,17 @@ async def api_recurrings(
     wallet_ids = [wallet.wallet.id]
     user = await get_user(wallet.wallet.user)
     if user.id != wallet.wallet.user:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Not your wallet."
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Not your wallet.")
     wallet_ids = user.wallet_ids if user else []
     recurrings = await get_recurrings(wallet_ids)
 
     updated_recurrings: list[RecurringPayment] = []
     for recurring in recurrings:
         now_ts = int(datetime.now(timezone.utc).timestamp())
-        # if it its not live and 1 day has passed check, 
+        # if it its not live and 1 day has passed check,
         # or if it is live and 30 days have passed check.
-        if (
-            (not recurring.check_live and (recurring.last_checked + 86400) > now_ts)
-            or (recurring.check_live and (recurring.last_checked + 2592000) > now_ts)
+        if (not recurring.check_live and (recurring.last_checked + 86400) > now_ts) or (
+            recurring.check_live and (recurring.last_checked + 2592000) > now_ts
         ):
             status = await check_live(recurring.id, settings.stripe_api_secret_key)
             recurring.check_live = is_entitled_status(status)
@@ -92,7 +86,7 @@ async def api_recurring_create(
     recurring_opts: dict[str, Any] = {
         "price_id": data.price_id,
         "success_url": data.success_url,
-        "cancel_url": data.success_url, 
+        "cancel_url": data.success_url,
         "metadata": {
             "user_id": str(data.customer_id),
             "plan": (data.plan or "default"),
@@ -106,9 +100,9 @@ async def api_recurring_create(
     extra = {"recurring": recurring_opts}
 
     resp = await provider_wallet.create_invoice(
-        amount=0, # ignored for subscriptions
+        amount=0,  # ignored for subscriptions
         payment_hash="recurring",
-        currency=data.currency, # ignored; Stripe uses the price's currency
+        currency=data.currency,  # ignored; Stripe uses the price's currency
         memo=data.memo,
         extra=extra,
     )

@@ -2,7 +2,6 @@
 
 
 from lnbits.db import Database
-from lnbits.helpers import urlsafe_short_hash
 
 from .models import CreateRecurringPayment, RecurringPayment
 
@@ -13,9 +12,11 @@ async def create_recurring(data: CreateRecurringPayment) -> RecurringPayment:
     await db.insert("recurring.maintable", data)
     return RecurringPayment(**data.dict())
 
+
 async def update_recurring(data: RecurringPayment) -> RecurringPayment:
     await db.update("recurring.maintable", data)
     return RecurringPayment(**data.dict())
+
 
 async def get_recurring(recurring_id: str) -> RecurringPayment | None:
     return await db.fetchone(
@@ -23,6 +24,7 @@ async def get_recurring(recurring_id: str) -> RecurringPayment | None:
         {"id": recurring_id},
         RecurringPayment,
     )
+
 
 async def get_recurrings(wallet_ids: str | list[str]) -> list[RecurringPayment]:
     if isinstance(wallet_ids, str):
@@ -32,6 +34,7 @@ async def get_recurrings(wallet_ids: str | list[str]) -> list[RecurringPayment]:
         f"SELECT * FROM recurring.maintable WHERE wallet_id IN ({q}) ORDER BY id",
         model=RecurringPayment,
     )
+
 
 async def delete_recurring(recurring_id: str) -> None:
     await db.execute(

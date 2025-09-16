@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class CreateRecurringPayment(BaseModel):
     price_id: str | None = ""
     payment_method_types: list[str] = ["bacs_debit"]
@@ -11,6 +12,7 @@ class CreateRecurringPayment(BaseModel):
     email: str | None = ""
     plan: str | None = ""
 
+
 class RecurringPayment(BaseModel):
     id: str | None = ""
     price_id: str | None = ""
@@ -21,6 +23,7 @@ class RecurringPayment(BaseModel):
     check_live: bool | None = True
     wallet_id: str | None = ""
     last_checked: int | None = 0
+
 
 class RecurringPaymentReturn(BaseModel):
     id: str | None = ""

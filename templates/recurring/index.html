@@ -38,8 +38,18 @@
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
                 <div v-if="col.field == 'check_live'">
-                  <q-icon size="1rem" name="check_circle" color="green" v-if="col.value == true"></q-icon>
-                  <q-icon size="1rem" name="cancel" color="red" v-if="col.value == false"></q-icon>
+                  <q-icon
+                    size="1rem"
+                    name="check_circle"
+                    color="green"
+                    v-if="col.value == true"
+                  ></q-icon>
+                  <q-icon
+                    size="1rem"
+                    name="cancel"
+                    color="red"
+                    v-if="col.value == false"
+                  ></q-icon>
                 </div>
                 <div v-else>${ col.value }</div>
               </q-td>
@@ -71,6 +81,5 @@
       </q-card-section>
     </q-card>
   </div>
-
 </div>
 {% endblock %}

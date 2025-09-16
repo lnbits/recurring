@@ -9,7 +9,12 @@ window.app = Vue.createApp({
         columns: [
           {name: 'live', align: 'left', label: 'live', field: 'check_live'},
           {name: 'id', align: 'left', label: 'id', field: 'id'},
-          {name: 'price_id', align: 'left', label: 'price_id', field: 'price_id'},
+          {
+            name: 'price_id',
+            align: 'left',
+            label: 'price_id',
+            field: 'price_id'
+          },
           {
             name: 'wallet_id',
             align: 'left',
@@ -32,11 +37,7 @@ window.app = Vue.createApp({
   methods: {
     async getReccurings() {
       await LNbits.api
-        .request(
-          'GET',
-          '/recurring/api/v1/recurring',
-          this.g.user.wallets[0].adminkey
-        )
+        .request('GET', '/recurring/api/v1', this.g.user.wallets[0].adminkey)
         .then(response => {
           this.recurring = response.data
         })
@@ -64,7 +65,7 @@ window.app = Vue.createApp({
     async createReccuring(wallet, data) {
       data.wallet = wallet.id
       await LNbits.api
-        .request('POST', '/recurring/api/v1/recurring', wallet.adminkey, data)
+        .request('POST', '/recurring/api/v1', wallet.adminkey, data)
         .then(response => {
           this.recurring.push(response.data)
           this.closeFormDialog()
@@ -75,25 +76,7 @@ window.app = Vue.createApp({
     },
     async exportCSV() {
       await LNbits.utils.exportCSV(this.recurringTable.columns, this.recurring)
-    },
-    async createInvoice(tempid) {
-      recurring = _.findWhere(this.recurring, {id: tempid})
-      const wallet = _.findWhere(this.g.user.wallets, {id: recurring.wallet})
-      const data = {
-        recurring_id: tempid,
-        amount: this.invoiceAmount,
-        memo: 'Reccuring - ' + recurring.name
-      }
-      await LNbits.api
-        .request('POST', `/recurring/api/v1/recurring/payment`, wallet.inkey, data)
-        .then(response => {
-          this.qrValue = response.data.payment_request
-          this.connectWebocket(wallet.inkey)
-        })
-        .catch(error => {
-          LNbits.utils.notifyApiError(error)
-        })
-    },
+    }
   },
   async created() {
     await this.getReccurings()

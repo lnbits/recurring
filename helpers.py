@@ -1,6 +1,7 @@
 # Description: A place for helper functions.
-import httpx
 from typing import Literal
+
+import httpx
 
 # Stripe subscription statuses we care about
 StripeStatus = Literal[
@@ -11,18 +12,20 @@ StripeStatus = Literal[
     "canceled",
     "incomplete",
     "incomplete_expired",
-    "paused",           # appears when collection is paused
-    "not_found",        # our sentinel for 404
-    "error",            # our sentinel for any other error
-    "unknown",          # our sentinel for unexpected/missing status
+    "paused",  # appears when collection is paused
+    "not_found",  # our sentinel for 404
+    "error",  # our sentinel for any other error
+    "unknown",  # our sentinel for unexpected/missing status
 ]
 
 # Count these as "live"/entitled to service
 _ENTITLED = {"active", "trialing", "past_due"}
 
+
 def is_entitled_status(status: str) -> bool:
     """Return True if the status should keep service enabled."""
     return status in _ENTITLED
+
 
 async def check_live(subscription_id: str, api_key: str) -> StripeStatus:
     """
