@@ -7,4 +7,5 @@ Later however it will be generalised and used for managing payments for an ongoi
 * payg fiat
 * lnurlw subscription
 * fiat subscription
+  
 Also have it optionally email/nostr dm users when funds need topping up.
