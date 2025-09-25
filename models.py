@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from datetime import datetime, timezone
 
 class CreateRecurringPayment(BaseModel):
     price_id: str | None = ""
@@ -22,7 +22,7 @@ class RecurringPayment(BaseModel):
     customer_email: str | None = ""
     check_live: bool | None = True
     wallet_id: str | None = ""
-    last_checked: int | None = 0
+    last_checked: datetime = datetime.now(timezone.utc)
 
 
 class RecurringPaymentReturn(BaseModel):
