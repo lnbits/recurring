@@ -1,8 +1,8 @@
 [project]
-name = "reccuring"
+name = "recurring"
 version = "0.0.0"
 requires-python = ">=3.10,<3.13"
-description = "For managing reccuring stripe payments"
+description = "For managing recurring stripe payments"
 authors = [{name = "benarc"}]
 
 dependencies = [ "lnbits>1" ]

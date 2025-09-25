@@ -4,7 +4,7 @@ from .crud import db
 from .views import recurring_generic_router
 from .views_api import recurring_api_router
 
-recurring_ext: APIRouter = APIRouter(prefix="/recurring", tags=["Reccuring"])
+recurring_ext: APIRouter = APIRouter(prefix="/recurring", tags=["Recurring"])
 recurring_ext.include_router(recurring_generic_router)
 recurring_ext.include_router(recurring_api_router)
 

@@ -1170,7 +1170,7 @@ wheels = [
 ]
 
 [[package]]
-name = "reccuring"
+name = "recurring"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [

@@ -1,1 +1,1 @@
-Reccuring cfor checking Stripe payments
+Recurring cfor checking Stripe payments

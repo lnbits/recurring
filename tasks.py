@@ -26,13 +26,13 @@ async def wait_for_paid_invoices():
 
 
 async def on_invoice_paid(payment: Payment) -> None:
-    if payment.extra.get("tag") != "Reccuring":
+    if payment.extra.get("tag") != "Recurring":
         return
 
     recurring_id = payment.extra.get("recurringId")
     assert recurring_id, "recurringId not set in invoice"
     recurring = await get_recurring(recurring_id)
-    assert recurring, "Reccuring does not exist"
+    assert recurring, "Recurring does not exist"
 
     # update something in the db
     if payment.extra.get("lnurlwithdraw"):
